@@ -13,8 +13,9 @@ resource "null_resource" "check_url" {
 
   # Execute a local script
   provisioner "local-exec" {
-    command = "./check_url.sh ${local.package_url}"
+    command = "${path.module}/check_url.sh ${local.package_url}"
   }
+
 }
 
 #######################################
@@ -26,7 +27,7 @@ module "vpc" {
 
   emqx_namespace  = var.emqx_namespace
   base_cidr_block = var.base_cidr_block
-  depends_on = [null_resource.check_url]
+  depends_on      = [null_resource.check_url]
 }
 
 #######################################
@@ -66,7 +67,7 @@ module "emqx_security_group" {
   vpc_id                   = module.vpc.vpc_id
   ingress_with_cidr_blocks = var.emqx_ingress_with_cidr_blocks
   egress_with_cidr_blocks  = var.egress_with_cidr_blocks
-  depends_on = [null_resource.check_url]
+  depends_on               = [null_resource.check_url]
 }
 
 #######################################
@@ -86,7 +87,7 @@ module "emqx4_cluster" {
   sg_ids                      = [module.emqx_security_group.sg_id]
   emqx_package                = var.emqx4_package
   ee_lic                      = var.emqx_lic
-  depends_on = [null_resource.check_url]
+  depends_on                  = [null_resource.check_url]
 }
 
 module "emqx5_cluster" {
@@ -104,7 +105,7 @@ module "emqx5_cluster" {
   emqx_package                = var.emqx5_package
   ee_lic                      = var.emqx_lic
   cookie                      = var.emqx_cookie
-  depends_on = [null_resource.check_url]
+  depends_on                  = [null_resource.check_url]
 }
 
 #######################################
@@ -123,5 +124,5 @@ module "elb" {
   forwarding_config_ssl = var.forwarding_config_ssl
   vpc_id                = module.vpc.vpc_id
   instance_ids          = var.is_emqx5 ? module.emqx5_cluster[0].ids : module.emqx4_cluster[0].ids
-  depends_on = [null_resource.check_url]
+  depends_on            = [null_resource.check_url]
 }
